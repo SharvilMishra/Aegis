@@ -1,3 +1,4 @@
+/p1/
 const firebaseConfig={apiKey:"AIzaSyCcpIzXv-6BwVG1omd0djFu7T6FyIoa_pc",authDomain:"aegis-f36a6.firebaseapp.com",projectId:"aegis-f36a6",storageBucket:"aegis-f36a6.firebasestorage.app",messagingSenderId:"492241347617",appId:"1:492241347617:web:07666aadc7c9c8d052ef60"};
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(),db=firebase.firestore(),storage=firebase.storage();
@@ -16,6 +17,7 @@ welcomeState=$('#welcome-state'),messagesContainer=$('#messages-container'),
 msgInput=$('#msg-input'),btnSend=$('#btn-send'),inputAttachments=$('#input-attachments'),
 topbarTitle=$('#topbar-title'),userName=$('#user-name'),userRole=$('#user-role'),
 userAvatar=$('#user-avatar'),userDropdown=$('#user-dropdown'),toastContainer=$('#toast-container');
+/p2/
 function toast(m,t=''){const e=document.createElement('div');e.className=`toast${t?' toast-'+t:''}`;e.textContent=m;toastContainer.appendChild(e);setTimeout(()=>e.remove(),3500)}
 function openModal(id){$('#'+id).classList.remove('hidden')}
 function closeModal(id){$('#'+id).classList.add('hidden')}
@@ -26,6 +28,7 @@ function formatContent(c){return c.replace(/```(\w*)\n([\s\S]*?)```/g,'<pre><cod
  $$('.modal-close').forEach(b=>b.onclick=()=>b.closest('.modal').classList.add('hidden'));
  $('#btn-toggle-sidebar').onclick=toggleSidebar;
 sidebarOverlay.onclick=toggleSidebar;
+/p3/
 function enterApp(user){
   app.user=user;app.isOwner=user.email===OWNER_EMAIL;
   authScreen.classList.add('hidden');appEl.classList.remove('hidden');
@@ -54,6 +57,7 @@ function enterApp(user){
     toast(e.code==='auth/popup-blocked'?'Popup blocked — allow popups for this site':'Auth failed: '+e.message,'error');
   }
 };
+/p4/
  $('#btn-face-auth').onclick=async()=>{
   $('#face-scan-overlay').classList.remove('hidden');
   try{mediaStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});$('#face-camera').srcObject=mediaStream;
@@ -79,6 +83,7 @@ auth.onAuthStateChanged(async u=>{if(!u||app.user)return;
   enterApp({name:u.displayName||u.email.split('@')[0],email:u.email,isOwner:u.email===OWNER_EMAIL})});
 
  $('#btn-logout').onclick=async()=>{try{await auth.signOut()}catch(e){}app.user=null;app.isOwner=false;app.activeChat=null;appEl.classList.add('hidden');authScreen.classList.remove('hidden');toast('Logged out')};
+/p5/
 function loadChats(){
   const list=$('#chat-history-list');list.innerHTML='';
   const stored=JSON.parse(localStorage.getItem('aegis_chats')||'[]');app.chats=stored;
@@ -112,6 +117,7 @@ async function sendMessage(){
 }
 
 function saveChats(){localStorage.setItem('aegis_chats',JSON.stringify(app.chats.slice(0,50)))}
+/p6/
 async function generateReply(text,files){
   try{
     const history=app.chats[app.activeChat]?.messages||[];
@@ -125,11 +131,11 @@ async function generateReply(text,files){
     });
     if(files.length&&files[0].type.startsWith('image/')){
       const base64=files[0].data.split(',')[1];
-      msgs.push({role:'user',parts:[{text:text||'Describe this image.'},{inlineData:{mimeType:files[0].type,data:base64}}]});
+      msgs.push({role:'user',parts:[{text:text||'Describe this image.'},{inline_data:{mime_type:files[0].type,data:base64}}]});
     }else{
       msgs.push({role:'user',parts:[{text:text||'Hello'}]});
     }
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:msgs,generationConfig:{temperature:0.7,maxOutputTokens:1024}})});
+    const res=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:msgs,generationConfig:{temperature:0.7,maxOutputTokens:1024}})});
     if(!res.ok){const err=await res.json();throw new Error(err.error?.message||'API error')}
     const data=await res.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text||'Sorry, I could not generate a response.';
@@ -138,6 +144,7 @@ async function generateReply(text,files){
     return'Something went wrong. Please try again.\n\nError: '+e.message;
   }
 }
+/p7/
 msgInput.oninput=()=>{msgInput.style.height='auto';msgInput.style.height=Math.min(msgInput.scrollHeight,150)+'px';btnSend.disabled=!msgInput.value.trim()&&!attachments.length};
 msgInput.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}};
 btnSend.onclick=sendMessage;
@@ -155,6 +162,7 @@ function renderAttachments(){
   btnSend.disabled=!msgInput.value.trim()&&!attachments.length;
   $$('.attachment-remove').forEach(b=>b.onclick=e=>{e.stopPropagation();attachments.splice(+b.dataset.i,1);renderAttachments()});
 }
+/p8/
  $('#btn-user-menu').onclick=e=>{e.stopPropagation();userDropdown.classList.toggle('hidden')};
 document.onclick=()=>userDropdown.classList.add('hidden');
  $('#btn-settings').onclick=()=>{userDropdown.classList.add('hidden');openModal('modal-settings')};
