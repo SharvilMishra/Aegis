@@ -1,0 +1,456 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Project Aegis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Auth Screen -->
+  <section id="auth-screen" class="auth-screen active">
+    <div class="auth-container">
+      <div class="auth-brand">
+        <div class="auth-logo">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 4L6 14v20l18 10 18-10V14L24 4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M24 4v40M6 14l18 10 18-10M6 34l18-10 18 10" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+            <circle cx="24" cy="24" r="4" fill="currentColor" opacity="0.6"/>
+          </svg>
+        </div>
+        <h1 class="auth-title">Aegis</h1>
+        <p class="auth-subtitle">Private AI Assistant</p>
+      </div>
+
+      <div class="auth-methods">
+        <!-- Gmail Auth -->
+        <button id="btn-gmail-auth" class="auth-btn auth-btn-primary">
+          <svg class="auth-btn-icon" viewBox="0 0 24 24" fill="none">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          <span>Continue with Gmail</span>
+        </button>
+
+        <!-- Face Auth -->
+        <button id="btn-face-auth" class="auth-btn auth-btn-secondary">
+          <svg class="auth-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 12h.01M15 12h.01M9.5 16a3.5 3.5 0 0 0 5 0"/>
+            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+          </svg>
+          <span>Face Recognition</span>
+        </button>
+
+        <!-- Voice Auth -->
+        <button id="btn-voice-auth" class="auth-btn auth-btn-secondary">
+          <svg class="auth-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+          </svg>
+          <span>Voice Recognition</span>
+        </button>
+      </div>
+
+      <!-- Face Scan Overlay (hidden by default) -->
+      <div id="face-scan-overlay" class="face-scan-overlay hidden">
+        <div class="face-scan-frame">
+          <div class="scan-corner scan-corner-tl"></div>
+          <div class="scan-corner scan-corner-tr"></div>
+          <div class="scan-corner scan-corner-bl"></div>
+          <div class="scan-corner scan-corner-br"></div>
+          <div class="scan-line"></div>
+          <video id="face-camera" autoplay playsinline muted></video>
+        </div>
+        <p class="face-scan-status">Position your face within the frame</p>
+        <button id="btn-cancel-face" class="auth-btn auth-btn-ghost">Cancel</button>
+      </div>
+
+      <!-- Voice Scan Overlay (hidden by default) -->
+      <div id="voice-scan-overlay" class="voice-scan-overlay hidden">
+        <div class="voice-visualizer">
+          <div class="voice-ring voice-ring-outer"></div>
+          <div class="voice-ring voice-ring-middle"></div>
+          <div class="voice-ring voice-ring-inner"></div>
+          <svg class="voice-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="22"/>
+          </svg>
+        </div>
+        <p class="voice-scan-status">Speak naturally to verify identity</p>
+        <button id="btn-cancel-voice" class="auth-btn auth-btn-ghost">Cancel</button>
+      </div>
+
+      <p id="auth-error" class="auth-error hidden"></p>
+    </div>
+  </section>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <svg class="sidebar-logo" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4L6 14v20l18 10 18-10V14L24 4z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <circle cx="24" cy="24" r="4" fill="currentColor" opacity="0.6"/>
+          </svg>
+          <span class="sidebar-title">Aegis</span>
+        </div>
+        <button id="btn-new-chat" class="btn-icon" aria-label="New Chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul class="sidebar-list" id="chat-history-list">
+          <!-- Chat history items injected here -->
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-card" id="user-card">
+          <div class="user-avatar" id="user-avatar"></div>
+          <div class="user-info">
+            <span class="user-name" id="user-name"></span>
+            <span class="user-role" id="user-role"></span>
+          </div>
+          <button id="btn-user-menu" class="btn-icon btn-icon-sm" aria-label="User Menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- User Dropdown -->
+        <div id="user-dropdown" class="user-dropdown hidden">
+          <button id="btn-manage-users" class="dropdown-item owner-only">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Manage Users</span>
+          </button>
+          <button id="btn-settings" class="dropdown-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span>Settings</span>
+          </button>
+          <button id="btn-memory" class="dropdown-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+            <span>Memory</span>
+          </button>
+          <hr class="dropdown-divider">
+          <button id="btn-logout" class="dropdown-item dropdown-item-danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            <span>Log Out</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- Top Bar -->
+      <header class="topbar">
+        <button id="btn-toggle-sidebar" class="btn-icon" aria-label="Toggle Sidebar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="topbar-context" id="topbar-context">
+          <span class="topbar-title" id="topbar-title">New Conversation</span>
+          <span class="topbar-badge" id="topbar-badge"></span>
+        </div>
+        <div class="topbar-actions">
+          <button id="btn-voice-input" class="btn-icon" aria-label="Voice Input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+          </button>
+          <button id="btn-camera-input" class="btn-icon" aria-label="Camera">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Area -->
+      <section class="chat-area" id="chat-area">
+        <!-- Welcome State -->
+        <div class="welcome-state" id="welcome-state">
+          <div class="welcome-icon">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M32 6L8 20v24l24 14 24-14V20L32 6z" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+              <path d="M32 6v52M8 20l24 14 24-14M8 44l24-14 24 14" stroke="currentColor" stroke-width="0.75" opacity="0.15"/>
+              <circle cx="32" cy="32" r="6" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+              <circle cx="32" cy="32" r="2" fill="currentColor" opacity="0.4"/>
+            </svg>
+          </div>
+          <h2 class="welcome-heading">How can I help you?</h2>
+          <p class="welcome-sub">Ask anything, share media, or use a quick action below.</p>
+          <div class="quick-actions">
+            <button class="quick-action-btn" data-prompt="Solve a math problem step by step">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              <span>Math</span>
+            </button>
+            <button class="quick-action-btn" data-prompt="Help me write and debug code">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+              </svg>
+              <span>Code</span>
+            </button>
+            <button class="quick-action-btn" data-prompt="Research a topic on the internet">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <span>Research</span>
+            </button>
+            <button class="quick-action-btn" data-prompt="Generate a creative image">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <span>Generate</span>
+            </button>
+            <button class="quick-action-btn" data-prompt="Translate something for me">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/>
+                <path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>
+              </svg>
+              <span>Translate</span>
+            </button>
+            <button class="quick-action-btn" data-prompt="Analyze an image or document from my device">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <span>Analyze</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="messages-container hidden" id="messages-container">
+          <!-- Messages injected here -->
+        </div>
+      </section>
+
+      <!-- Input Area -->
+      <footer class="input-area" id="input-area">
+        <div class="input-attachments" id="input-attachments">
+          <!-- Attachment previews injected here -->
+        </div>
+        <div class="input-row">
+          <button id="btn-attach" class="btn-icon" aria-label="Attach File">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <div class="input-wrapper">
+            <textarea id="msg-input" class="msg-input" placeholder="Message Aegis..." rows="1" aria-label="Message input"></textarea>
+          </div>
+          <button id="btn-send" class="btn-send" aria-label="Send Message" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+        <p class="input-disclaimer">Aegis may make mistakes. Verify important information.</p>
+      </footer>
+    </main>
+
+    <!-- Modals -->
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="modal-header">
+          <h3 class="modal-title">Settings</h3>
+          <button class="btn-icon modal-close" data-modal="modal-settings" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="settings-group">
+            <h4 class="settings-group-title">AI Behavior</h4>
+            <label class="settings-item">
+              <span class="settings-label">Response Style</span>
+              <select id="setting-response-style" class="settings-select">
+                <option value="balanced">Balanced</option>
+                <option value="concise">Concise</option>
+                <option value="detailed">Detailed</option>
+              </select>
+            </label>
+            <label class="settings-item">
+              <span class="settings-label">Language</span>
+              <select id="setting-language" class="settings-select">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="sa">Sanskrit</option>
+                <option value="de">German</option>
+                <option value="es">Spanish</option>
+              </select>
+            </label>
+          </div>
+          <div class="settings-group">
+            <h4 class="settings-group-title">Permissions</h4>
+            <label class="settings-toggle">
+              <span class="settings-label">File System Access</span>
+              <input type="checkbox" id="setting-files" class="toggle-input">
+              <span class="toggle-track"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-label">Gallery Access</span>
+              <input type="checkbox" id="setting-gallery" class="toggle-input">
+              <span class="toggle-track"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-label">Music Control</span>
+              <input type="checkbox" id="setting-music" class="toggle-input">
+              <span class="toggle-track"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-label">Calling</span>
+              <input type="checkbox" id="setting-calling" class="toggle-input">
+              <span class="toggle-track"></span>
+            </label>
+            <label class="settings-toggle">
+              <span class="settings-label">Internet Access</span>
+              <input type="checkbox" id="setting-internet" class="toggle-input" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Management Modal (Owner Only) -->
+    <div id="modal-users" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel modal-panel-lg">
+        <div class="modal-header">
+          <h3 class="modal-title">User Management</h3>
+          <button class="btn-icon modal-close" data-modal="modal-users" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="users-header">
+            <span class="users-count" id="users-count">0 / 10 users</span>
+            <button id="btn-add-user" class="btn-primary btn-sm">Add User</button>
+          </div>
+          <div class="users-list" id="users-list">
+            <!-- User cards injected here -->
+          </div>
+          <div class="add-user-form hidden" id="add-user-form">
+            <h4 class="settings-group-title">Add Authorized User</h4>
+            <input type="email" id="new-user-email" class="settings-input" placeholder="Enter Gmail address to allowlist">
+            <div class="form-actions">
+              <button id="btn-confirm-add-user" class="btn-primary btn-sm">Confirm</button>
+              <button id="btn-cancel-add-user" class="btn-ghost btn-sm">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Memory Modal -->
+    <div id="modal-memory" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="modal-header">
+          <h3 class="modal-title">Memory</h3>
+          <button class="btn-icon modal-close" data-modal="modal-memory" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="memory-section">
+            <h4 class="settings-group-title">Preferences</h4>
+            <div class="memory-tags" id="memory-preferences">
+              <span class="memory-tag">No preferences saved yet</span>
+            </div>
+          </div>
+          <div class="memory-section">
+            <h4 class="settings-group-title">Context</h4>
+            <div class="memory-tags" id="memory-context">
+              <span class="memory-tag">No context stored yet</span>
+            </div>
+          </div>
+          <button id="btn-clear-memory" class="btn-ghost btn-sm" style="margin-top:1rem;">Clear All Memory</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="modal-camera" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel modal-panel-camera">
+        <div class="modal-header">
+          <h3 class="modal-title">Camera</h3>
+          <button class="btn-icon modal-close" data-modal="modal-camera" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="camera-view">
+          <video id="camera-feed" autoplay playsinline muted></video>
+          <div class="camera-crosshair"></div>
+        </div>
+        <div class="camera-actions">
+          <button id="btn-capture" class="btn-capture" aria-label="Capture">
+            <span class="capture-ring"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
