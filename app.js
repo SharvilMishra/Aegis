@@ -4,6 +4,7 @@ const auth=firebase.auth(),db=firebase.firestore(),storage=firebase.storage();
 
 const OWNER_EMAIL='eng.sharvilmishra@gmail.com';
 const ALLOWED_EMAILS=[OWNER_EMAIL,'sharvilm112@gmail.com'];
+const GEMINI_KEY='AQ.Ab8RN6IAKrSnveTNMD4mJJR_BCVAnf5MZIzslbMUSdUT5fiwEg';
 
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const app={user:null,isOwner:false,chats:[],activeChat:null};
@@ -25,15 +26,13 @@ function formatContent(c){return c.replace(/```(\w*)\n([\s\S]*?)```/g,'<pre><cod
  $$('.modal-close').forEach(b=>b.onclick=()=>b.closest('.modal').classList.add('hidden'));
  $('#btn-toggle-sidebar').onclick=toggleSidebar;
 sidebarOverlay.onclick=toggleSidebar;
-
 function enterApp(user){
   app.user=user;app.isOwner=user.email===OWNER_EMAIL;
   authScreen.classList.add('hidden');appEl.classList.remove('hidden');
   userName.textContent=user.name;userRole.textContent=user.isOwner?'Owner':'User';
   userAvatar.textContent=user.name.charAt(0).toUpperCase();
   $$('.owner-only').forEach(el=>el.style.display=app.isOwner?'flex':'none');
-  if(app.isOwner)loadUsers();
-  loadChats();
+  if(app.isOwner)loadUsers();loadChats();
 }
 
  $('#btn-gmail-auth').onclick=async()=>{
@@ -55,7 +54,6 @@ function enterApp(user){
     toast(e.code==='auth/popup-blocked'?'Popup blocked — allow popups for this site':'Auth failed: '+e.message,'error');
   }
 };
-
  $('#btn-face-auth').onclick=async()=>{
   $('#face-scan-overlay').classList.remove('hidden');
   try{mediaStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});$('#face-camera').srcObject=mediaStream;
@@ -81,7 +79,6 @@ auth.onAuthStateChanged(async u=>{if(!u||app.user)return;
   enterApp({name:u.displayName||u.email.split('@')[0],email:u.email,isOwner:u.email===OWNER_EMAIL})});
 
  $('#btn-logout').onclick=async()=>{try{await auth.signOut()}catch(e){}app.user=null;app.isOwner=false;app.activeChat=null;appEl.classList.add('hidden');authScreen.classList.remove('hidden');toast('Logged out')};
-
 function loadChats(){
   const list=$('#chat-history-list');list.innerHTML='';
   const stored=JSON.parse(localStorage.getItem('aegis_chats')||'[]');app.chats=stored;
@@ -114,21 +111,33 @@ async function sendMessage(){
   appendMsg('ai',reply,t2);app.chats[app.activeChat].messages.push({role:'ai',content:reply,time:t2});saveChats();
 }
 
-async function generateReply(text,files){
-  await new Promise(r=>setTimeout(r,800+Math.random()*1200));const l=text.toLowerCase();
-  if(files.length&&files[0].type.startsWith('image/'))return'I can see you\'ve shared an image. Visual analysis is ready — describe what you\'d like me to identify or analyze in it.';
-  if(/math|solve|calculate/.test(l))return'Sure, I can help with that.\n\n**Step 1:** Identify the problem type\n**Step 2:** Apply the relevant formula\n**Step 3:** Compute the result\n\nShare the specific problem and I\'ll solve it step by step.';
-  if(/code|program|debug|python|java|cpp|javascript/.test(l))return'```python\ndef solve(data):\n    result = []\n    for item in data:\n        processed = item * 2\n        result.append(processed)\n    return result\n\nprint(solve([1, 2, 3]))  # [2, 4, 6]\n```\n\nI support **C++**, **Python**, **Java**, **HTML/CSS**, and **JavaScript**.';
-  if(l.includes('translate'))return'I support **English**, **Hindi**, **Sanskrit**, **German**, and **Spanish**. Send me the text and target language.';
-  if(/generate|image|wallpaper/.test(l))return'Image generation is ready. Describe what you\'d like — wallpaper, logo, icon, concept art, or any creative illustration.';
-  if(/research|search|find/.test(l))return'I\'ll research that for you using the internet layer. What specific aspects do you need — sources, summaries, or detailed analysis?';
-  if(/call|dial/.test(l))return'Calling requires permission. Enable it in **Settings > Calling**, then say the contact name or number.';
-  if(/play|music|song/.test(l))return'Music control requires gallery permission. Enable it in **Settings > Music Control**, then I can search and play your local music.';
-  if(/who are you|what are you/.test(l))return'I\'m **Aegis** — a private AI assistant designed for a small trusted group. I can help with math, coding, research, translation, image analysis, device integration, and more.';
-  return'Received. I\'m processing your request. Could you provide more details so I can assist you effectively?';
-}
-
 function saveChats(){localStorage.setItem('aegis_chats',JSON.stringify(app.chats.slice(0,50)))}
+async function generateReply(text,files){
+  try{
+    const history=app.chats[app.activeChat]?.messages||[];
+    const msgs=[{role:'user',parts:[{text:'You are Aegis, a private AI assistant. Be helpful, concise, and smart. Use markdown for code blocks. Keep answers clear and organized.'}]}];
+    msgs.push({role:'model',parts:[{text:'Understood. I am Aegis, ready to help.'}]});
+    const recent=history.slice(-10);
+    recent.forEach(m=>{
+      const role=m.role==='user'?'user':'model';
+      let content=m.content.replace(/<[^>]*>/g,'');
+      msgs.push({role,parts:[{text:content}]});
+    });
+    if(files.length&&files[0].type.startsWith('image/')){
+      const base64=files[0].data.split(',')[1];
+      msgs.push({role:'user',parts:[{text:text||'Describe this image.'},{inlineData:{mimeType:files[0].type,data:base64}}]});
+    }else{
+      msgs.push({role:'user',parts:[{text:text||'Hello'}]});
+    }
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:msgs,generationConfig:{temperature:0.7,maxOutputTokens:1024}})});
+    if(!res.ok){const err=await res.json();throw new Error(err.error?.message||'API error')}
+    const data=await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text||'Sorry, I could not generate a response.';
+  }catch(e){
+    console.error('Gemini error:',e);
+    return'Something went wrong. Please try again.\n\nError: '+e.message;
+  }
+}
 msgInput.oninput=()=>{msgInput.style.height='auto';msgInput.style.height=Math.min(msgInput.scrollHeight,150)+'px';btnSend.disabled=!msgInput.value.trim()&&!attachments.length};
 msgInput.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}};
 btnSend.onclick=sendMessage;
