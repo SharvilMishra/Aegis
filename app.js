@@ -1,4 +1,9 @@
 
+const firebaseConfig={apiKey:"AIzaSyCcpIzXv-6BwVG1omd0djFu7T6FyIoa_pc",authDomain:"aegis-f36a6.firebaseapp.com",projectId:"aegis-f36a6",storageBucket:"aegis-f36a6.firebasestorage.app",messagingSenderId:"492241347617",appId:"1:492241347617:web:07666aadc7c9c8d052ef60"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.firestore(),storage=firebase.storage();
+
+
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),app={user:null,isOwner:false,chats:[],activeChat:null};
 const authScreen=$('#auth-screen'),appEl=$('#app'),sidebar=$('#sidebar'),sidebarOverlay=$('#sidebar-overlay'),chatArea=$('#chat-area'),welcomeState=$('#welcome-state'),messagesContainer=$('#messages-container'),msgInput=$('#msg-input'),btnSend=$('#btn-send'),inputAttachments=$('#input-attachments'),topbarTitle=$('#topbar-title'),userName=$('#user-name'),userRole=$('#user-role'),userAvatar=$('#user-avatar'),userCard=$('#user-card'),userDropdown=$('#user-dropdown'),toastContainer=$('#toast-container');
 const ALLOWED_EMAILS=['owner@gmail.com'];
